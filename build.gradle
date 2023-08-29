@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'net.elytrium'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.elytrium:serializer:1.0.2'
+    implementation 'com.discord4j:discord4j-core:3.2.5'
+    implementation 'com.h2database:h2:2.1.214'
+    implementation 'org.xerial:sqlite-jdbc:3.40.0.0'
+    implementation 'com.mysql:mysql-connector-j:8.0.31'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+}
+
+jar {
+    manifest {
+        attributes['Manifest-Version'] = '1.0'
+        attributes['Main-Class'] = 'net.elytrium.dbm.Main'
+    }
+}
+
+shadowJar {
+    getArchiveClassifier().set("")
+}
+
+assemble.dependsOn(shadowJar)
