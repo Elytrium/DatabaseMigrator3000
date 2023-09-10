@@ -84,6 +84,7 @@ public class MySQLDeleteOnCloseConnection implements Connection {
       statement.execute("DROP USER '" + username + "'@'localhost'");
       statement.execute("DROP DATABASE " + database);
       statement.close();
+      rootConnection.close();
     }
   }
 

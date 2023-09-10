@@ -10,26 +10,27 @@ import java.util.UUID;
 
 public class MySQLDatabaseConnector implements DatabaseConnector {
 
-  private static final Connection ROOT_CONNECTION;
-
   static {
     try {
       System.out.println("Initializing MySQL connector...");
       Class.forName("com.mysql.cj.jdbc.Driver");
-      String password = Config.INSTANCE.mysqlRoot.password;
-      password = password == null || password.isBlank() ? null : password;
-      ROOT_CONNECTION = DriverManager.getConnection("jdbc:mysql://localhost/mysql" + Config.INSTANCE.mysqlRoot.parameters, Config.INSTANCE.mysqlRoot.username, password);
-      System.out.println("Connected to MySQL.");
-    } catch (ClassNotFoundException | SQLException e) {
+    } catch (ClassNotFoundException e) {
       throw new ExceptionInInitializerError(e);
     }
+  }
+
+  private static Connection createRootConnection() throws SQLException {
+    String password = Config.INSTANCE.mysqlRoot.password;
+    password = password == null || password.isBlank() ? null : password;
+    return DriverManager.getConnection("jdbc:mysql://localhost/mysql" + Config.INSTANCE.mysqlRoot.parameters, Config.INSTANCE.mysqlRoot.username, password);
   }
 
   public MySQLDeleteOnCloseConnection createDatabase() throws SQLException {
     String name = "tmp" + Long.toHexString(System.currentTimeMillis());
     String password = UUID.randomUUID().toString();
 
-    Statement statement = ROOT_CONNECTION.createStatement();
+    Connection rootConnection = createRootConnection();
+    Statement statement = rootConnection.createStatement();
     statement.execute("CREATE DATABASE " + name);
     statement.execute("CREATE USER '" + name + "'@'localhost' IDENTIFIED BY '" + password + "'");
     statement.execute("GRANT ALL PRIVILEGES ON " + name + ".* TO '" + name + "'@'localhost'");
@@ -38,7 +39,7 @@ public class MySQLDatabaseConnector implements DatabaseConnector {
 
     return new MySQLDeleteOnCloseConnection(
         DriverManager.getConnection("jdbc:mysql://localhost/" + name, name, password),
-        ROOT_CONNECTION, name, password, name
+        rootConnection, name, password, name
     );
   }
 
